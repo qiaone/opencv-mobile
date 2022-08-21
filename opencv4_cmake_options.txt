@@ -81,3 +81,9 @@
 -DBUILD_opencv_objdetect=OFF
 -DBUILD_opencv_stitching=OFF
 -DBUILD_opencv_ml=OFF
+-DCMAKE_CXX_FLAGS=-fopenmp
+-DCMAKE_C_FLAGS=-fopenmp
+-DCMAKE_CXX_FLAGS=static-openmp
+-DCMAKE_C_FLAGS=static-openmp
+-CMAKE_EXE_LINKER_FLAGS=-fopenmp
+-CMAKE_EXE_LINKER_FLAGS=static-openmp
