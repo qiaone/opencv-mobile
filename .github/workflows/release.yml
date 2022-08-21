@@ -24,8 +24,8 @@ jobs:
       PACKAGENAME: opencv-mobile-4.5.4-android
     steps:
     - uses: actions/checkout@v2
-      - uses: nttld/setup-ndk@v1
-        with:
+    - uses: nttld/setup-ndk@v1
+      with:
           ndk-version: r21e
     - name: ndk-fix-debug
       run: sed -i -e '/^  -g$/d' $ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake
