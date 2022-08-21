@@ -17,82 +17,84 @@ jobs:
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-  armlinux-opencv2:
+  android-opencv4:
     runs-on: ubuntu-latest
     env:
-      OPENCV_VERSION: 2.4.13.7
-      PACKAGENAME: opencv-mobile-2.4.13.7-armlinux
+      OPENCV_VERSION: 4.5.4
+      PACKAGENAME: opencv-mobile-4.5.4-android
     steps:
-    - name: arm-gnu-toolchain
-      run: |
-        sudo apt-get update
-        sudo apt-get install g++-arm-linux-gnueabi g++-arm-linux-gnueabihf g++-aarch64-linux-gnu
-
     - uses: actions/checkout@v2
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+    - name: ndk-fix-debug
+      run: sed -i -e '/^  -g$/d' $ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake
     - name: opencv-source
       run: |
         wget -q https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip -O opencv-${{ env.OPENCV_VERSION }}.zip
         unzip -q opencv-${{ env.OPENCV_VERSION }}.zip
         cd opencv-${{ env.OPENCV_VERSION }}
         truncate -s 0 cmake/OpenCVFindLibsGrfmt.cmake
-        patch -p1 -i ../opencv-2.4.13.7-no-rtti.patch
-        patch -p1 -i ../opencv-2.4.13.7-no-zlib.patch
-        patch -p1 -i ../opencv-2.4.13.7-fix-highgui-include.patch
-        patch -p1 -i ../opencv-2.4.13.7-no-link-stdc++.patch
+        rm -rf modules/gapi
+        patch -p1 -i ../opencv-4.5.4-no-rtti.patch
+        patch -p1 -i ../opencv-4.5.4-no-zlib.patch
         rm -rf modules/highgui
         cp -r ../highgui modules/
-    - name: build-arm-linux-gnueabi
+    - name: build-armeabi-v7a
       run: |
         cd opencv-${{ env.OPENCV_VERSION }}
-        mkdir build-arm-linux-gnueabi && cd build-arm-linux-gnueabi
-        cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/arm-linux-gnueabi.toolchain.cmake \
-            -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv2_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+        mkdir build-armeabi-v7a && cd build-armeabi-v7a
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="armeabi-v7a" -DANDROID_ARM_NEON=ON -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
         cmake --build . -j 2
         cmake --build . --target install
-    - name: build-arm-linux-gnueabihf
+    - name: build-arm64-v8a
       run: |
         cd opencv-${{ env.OPENCV_VERSION }}
-        mkdir build-arm-linux-gnueabihf && cd build-arm-linux-gnueabihf
-        cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/arm-linux-gnueabihf.toolchain.cmake \
-            -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv2_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+        mkdir build-arm64-v8a && cd build-arm64-v8a
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
         cmake --build . -j 2
         cmake --build . --target install
-    - name: build-aarch64-linux-gnu
+    - name: build-x86
       run: |
         cd opencv-${{ env.OPENCV_VERSION }}
-        mkdir build-aarch64-linux-gnu && cd build-aarch64-linux-gnu
-        cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/aarch64-linux-gnu.toolchain.cmake \
-            -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv2_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+        mkdir build-x86 && cd build-x86
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="x86" -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
+        cmake --build . -j 2
+        cmake --build . --target install
+    - name: build-x86_64
+      run: |
+        cd opencv-${{ env.OPENCV_VERSION }}
+        mkdir build-x86_64 && cd build-x86_64
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="x86_64" -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
         cmake --build . -j 2
         cmake --build . --target install
     - name: package
       run: |
         mkdir ${{ env.PACKAGENAME }}
-        mkdir ${{ env.PACKAGENAME }}/arm-linux-gnueabi
-        mkdir ${{ env.PACKAGENAME }}/arm-linux-gnueabihf
-        mkdir ${{ env.PACKAGENAME }}/aarch64-linux-gnu
-        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm-linux-gnueabi/install/* ${{ env.PACKAGENAME }}/arm-linux-gnueabi/
-        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm-linux-gnueabihf/install/* ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/
-        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-aarch64-linux-gnu/install/* ${{ env.PACKAGENAME }}/aarch64-linux-gnu/
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/haarcascades
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/lbpcascades
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/haarcascades
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/lbpcascades
-        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/haarcascades
-        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/lbpcascades
+        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-x86/install/* ${{ env.PACKAGENAME }}/
+        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-x86_64/install/* ${{ env.PACKAGENAME }}/
+        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-armeabi-v7a/install/* ${{ env.PACKAGENAME }}/
+        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm64-v8a/install/* ${{ env.PACKAGENAME }}/
+        rm -rf ${{ env.PACKAGENAME }}/sdk/etc
+        rm -f ${{ env.PACKAGENAME }}/sdk/native/jni/*.mk
+        rm -f ${{ env.PACKAGENAME }}/sdk/native/jni/android.toolchain.cmake
         zip -9 -r ${{ env.PACKAGENAME }}.zip ${{ env.PACKAGENAME }}
-    - name: upload-zip
+    - name: upload
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.PACKAGENAME }}
         path: ${{ env.PACKAGENAME }}.zip
 
-
   release:
-    needs: [setup, armlinux-opencv2]
+    needs: [setup, android-opencv4]
     runs-on: ubuntu-latest
     steps:
     - name: download
@@ -111,11 +113,11 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: upload-armlinux-opencv2
+    - name: upload-android-opencv4
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PACKAGENAME: opencv-mobile-2.4.13.7-armlinux
+        PACKAGENAME: opencv-mobile-4.5.4-android
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: artifacts/${{ env.PACKAGENAME }}/${{ env.PACKAGENAME }}.zip
