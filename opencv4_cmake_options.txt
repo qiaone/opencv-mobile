@@ -85,5 +85,5 @@
 -DCMAKE_C_FLAGS=-fopenmp
 -DCMAKE_CXX_FLAGS=-static-openmp
 -DCMAKE_C_FLAGS=-static-openmp
--DCMAKE_STATIC_LINKER_FLAGS=-fopenmp
--DCMAKE_STATIC_LINKER_FLAGS=-static-openmp
+-DCMAKE_SHARED_LINKER_FLAGS=-fopenmp
+-DCMAKE_SHARED_LINKER_FLAGS=-static-openmp
