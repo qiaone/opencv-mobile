@@ -1,9 +1,7 @@
 name: release
 #on: [push, pull_request]
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
