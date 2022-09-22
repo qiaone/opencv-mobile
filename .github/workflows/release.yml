@@ -35,7 +35,7 @@ jobs:
         ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
     - name: fix_toolchain_r15c
       run: |
-        wget https://github.com/qiaone/opencv-mobile/releases/download/untagged-9663403c0e578bdd56e0/android.toolchain.cmake
+        wget https://github.com/qiaone/opencv-mobile/releases/download/refs%2Fheads%2Fmaster/android.toolchain.cmake
         cp android.toolchain.cmake /opt/hostedtoolcache/ndk/r15c/x64/build/cmake/android.toolchain.cmake
     - name: opencv-source
       run: |
