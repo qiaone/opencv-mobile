@@ -27,7 +27,7 @@ jobs:
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
-        ndk-version: r21e
+        ndk-version: r15c
         add-to-path: false
     - name: ndk-fix-debug
       run: sed -i -e '/^  -g$/d' ${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake
