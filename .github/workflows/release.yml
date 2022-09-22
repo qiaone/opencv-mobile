@@ -39,7 +39,7 @@ jobs:
         cp android.toolchain.cmake /opt/hostedtoolcache/ndk/r15c/x64/build/cmake/android.toolchain.cmake
     - name: opencv-source
       run: |
-        wget -q https://github.com/qiaone/opencv-mobile/releases/download/refs%2Fheads%2Fmaster/opencv-mobile-4.5.4-android.zip -O opencv-${{ env.OPENCV_VERSION }}.zip
+        wget -q https://github.com/qiaone/opencv-mobile/releases/download/refs%2Fheads%2Fmaster/opencv-4.5.4.zip -O opencv-${{ env.OPENCV_VERSION }}.zip
         unzip -q opencv-${{ env.OPENCV_VERSION }}.zip
         cd opencv-${{ env.OPENCV_VERSION }}
         truncate -s 0 cmake/OpenCVFindLibsGrfmt.cmake
