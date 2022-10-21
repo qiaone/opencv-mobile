@@ -1,4 +1,4 @@
-name: release
+name: get_compiling_src
 #on: [push, pull_request]
 on:
   workflow_dispatch:
@@ -48,15 +48,6 @@ jobs:
         patch -p1 -i ../opencv-4.5.4-no-zlib.patch
         rm -rf modules/highgui
         cp -r ../highgui modules/
-    - name: build-armeabi-v7a
-      run: |
-        cd opencv-${{ env.OPENCV_VERSION }}
-        mkdir build-armeabi-v7a && cd build-armeabi-v7a
-        cmake -DCMAKE_TOOLCHAIN_FILE=${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
-            -DANDROID_ABI="armeabi-v7a" -DANDROID_ARM_NEON=ON -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=ON -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
-        cmake --build . -j 2
-        cmake --build . --target install
     - name: build-arm64-v8a
       run: |
         cd opencv-${{ env.OPENCV_VERSION }}
@@ -64,16 +55,10 @@ jobs:
         cmake -DCMAKE_TOOLCHAIN_FILE=${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
             -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-24 -DANDROID_CPP_FEATURES="no-rtti no-exceptions" \
             -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=ON -DOPENCV_DISABLE_FILESYSTEM_SUPPORT=ON ..
-        cmake --build . -j 2
-        cmake --build . --target install
     - name: package
       run: |
         mkdir ${{ env.PACKAGENAME }}
-        cp -rf opencv-${{ env.OPENCV_VERSION }}/build-armeabi-v7a/install/* ${{ env.PACKAGENAME }}/
         cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm64-v8a/install/* ${{ env.PACKAGENAME }}/
-        rm -rf ${{ env.PACKAGENAME }}/sdk/etc
-        rm -f ${{ env.PACKAGENAME }}/sdk/native/jni/*.mk
-        rm -f ${{ env.PACKAGENAME }}/sdk/native/jni/android.toolchain.cmake
         zip -9 -r ${{ env.PACKAGENAME }}.zip ${{ env.PACKAGENAME }}
     - name: upload
       uses: actions/upload-artifact@v2
@@ -96,7 +81,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: r15c
+        tag_name: build_src
         release_name: Release ${{ needs.setup.outputs.VERSION }}
         draft: false
         prerelease: false
